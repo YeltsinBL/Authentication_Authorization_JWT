@@ -22,9 +22,9 @@ namespace LoginToken.Controllers
         public async Task<IActionResult> Authenticate([FromBody] AuthorizationRequest authorization)
         {
             var result = await _authorizationService.TokenResponse(authorization);
-            if (result == null)
+            if (result.Resultado == false)
             {
-                return Unauthorized();
+                return Unauthorized(result);
             }
             return Ok(result);
         }

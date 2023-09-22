@@ -60,11 +60,19 @@ namespace LoginToken.Service
         public async Task<AuthorizationResponse> TokenResponse(AuthorizationRequest authorizationRequest)
         {
             var usuario_registrado = _sesionTokenContext.Usuarios.FirstOrDefault(x =>
+                x.NombreUsuario == authorizationRequest.NombreUsuario
+            );
+            if (usuario_registrado == null)
+            {
+                return await Task.FromResult<AuthorizationResponse>(result: new AuthorizationResponse { Resultado = false, Msg = "Usuario incorrecto" });
+            }
+            usuario_registrado = _sesionTokenContext.Usuarios.FirstOrDefault(x =>
                 x.NombreUsuario == authorizationRequest.NombreUsuario &&
                 x.Clave == authorizationRequest.Clave
             );
             if (usuario_registrado == null){
-                return await Task.FromResult<AuthorizationResponse>(null);
+                //return await Task.FromResult<AuthorizationResponse>(null);
+                return await Task.FromResult<AuthorizationResponse>(result: new AuthorizationResponse { Resultado = false, Msg = "Contraseña incorrecta" });
             }
 
             string tokenCreado = CreateToken(usuario_registrado.IdUsuario.ToString());
