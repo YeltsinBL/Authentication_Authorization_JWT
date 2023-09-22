@@ -25,7 +25,7 @@ namespace LoginToken.Service
         private string CreateToken(string idUsuario)
         {
             // Accedemos a la clave secreta para el JWT
-            var key = _configuration.GetValue<string>("JwtSetting.secretKey");
+            var key = _configuration.GetValue<string>("JwtSetting:secretKey");
             // convetimos la clave en array
             var keyBytes = Encoding.ASCII.GetBytes(key);
             // Agregar la información del usuario al Token

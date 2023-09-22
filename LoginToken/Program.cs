@@ -26,7 +26,7 @@ builder.Services.AddDbContext<SesionTokenContext>(opt =>
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 
 // Configurar JWT
-var key = builder.Configuration.GetValue<string>("JwtSetting.secretKey");
+var key = builder.Configuration.GetValue<string>("JwtSetting:secretKey");
 var keyBytes = Encoding.ASCII.GetBytes(key);
 builder.Services.AddAuthentication(config =>
 {
