@@ -26,15 +26,16 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
 - En el archivo [`appsettings.json`][appsettings] se agregó el 'JwtSetting' para agregar la clave secreta que creará el JWT.
 - En el archivo [`Program.cs`][programcs] se registró la interfaz y clase del Service, y también se configuró JWT en base del uso de las credenciales.
 - [`Models`][models]:
-  - AuthorizationRequest: para las credenciales del Login
-  - AuthorizationResponse: para la respuesta al Login
+  - AuthorizationRequest: para las credenciales del Login.
+  - AuthorizationResponse: para la respuesta al Login.
+  - Custom: carpeta donde están los modelos que recibe y devuelve la API.
 - [`Service`][service]:
 
-  - [IAuthorizationService][iauthorizationservice]: interfaz para las authorizaciones del Token.
-  - [AuthorizationService][authorizationservice]: clase heredada donde se implementa los métodos de la interfaz IAuthorizationService.
+  - [IAuthorizationService][iauthorizationservice]: interfaz para las autorizaciones del Token.
+  - [AuthorizationService][authorizationservice]: clase heredada donde se implementa los métodos de la interfaz IAuthorizationService y se agrega métodos privados para la creación y guardado de los Access y Refresh Token en la BD.
 - [`Controllers`][controller]:
 
-  - [UserController][usercontroller]: api para iniciar sesión
+  - [UserController][usercontroller]: api para iniciar sesión y obtener el refresh token.
   - [CountriesController][countriescontroller]: listado solo si ha iniciado sesión.
 
 [//]: # (Enlaces a la documentación)

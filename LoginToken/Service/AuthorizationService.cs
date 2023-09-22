@@ -7,6 +7,7 @@ using LoginToken.Models.Custom;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
+using System.Security.Cryptography;
 
 namespace LoginToken.Service
 {
@@ -68,7 +69,63 @@ namespace LoginToken.Service
 
             string tokenCreado = CreateToken(usuario_registrado.IdUsuario.ToString());
 
-            return new AuthorizationResponse() { Token = tokenCreado, Resultado = true, Msg ="OK" };
+            // devolvemos el Refresh Token
+            string refreshToquenCreado = CreateRefreshToken();
+
+            //return new AuthorizationResponse() { Token = tokenCreado, Resultado = true, Msg ="OK" };
+            return await SaveHistoryRefreshToken(usuario_registrado.IdUsuario,tokenCreado,refreshToquenCreado); 
+        }
+
+        // Generar RefreshToken
+        private string CreateRefreshToken()
+        {
+            var byteArray = new byte[64];
+            var refreshToken = "";
+
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(byteArray);
+                refreshToken = Convert.ToBase64String(byteArray);
+            }
+            return refreshToken;
+        }
+
+        // Guardar el Refresh Token en la BD
+        private async Task<AuthorizationResponse> SaveHistoryRefreshToken(int idUsuario,
+            string token, string refreshToken)
+        {
+            var historyRefreshToken = new HistorialRefreshToken
+            {
+                IdUsuario = idUsuario,
+                Token = token,
+                RefreshToken = refreshToken,
+                FechaCreacion = DateTime.UtcNow,
+                FechaExpiracion = DateTime.UtcNow.AddMinutes(2)
+            };
+
+            await _sesionTokenContext.HistorialRefreshTokens.AddAsync(historyRefreshToken);
+            await _sesionTokenContext.SaveChangesAsync();
+
+            return new AuthorizationResponse() { Token = token, RefreshToken = refreshToken,
+                Resultado = true, Msg ="OK" };
+        
+        }
+
+        public async Task<AuthorizationResponse> RefreshTokenResponse(RefreshTokenRequest refreshTokenRequest, int idUsuario)
+        {
+            var refreshTokenRegistrado = _sesionTokenContext.HistorialRefreshTokens.FirstOrDefault(X =>
+                X.Token == refreshTokenRequest.TokenExpirado &&
+                X.RefreshToken == refreshTokenRequest.RefreshToken &&
+                X.IdUsuario == idUsuario);
+            if (refreshTokenRegistrado == null)
+            {
+                return new AuthorizationResponse{ Resultado = false, Msg = "No existe refreshToken" };
+            }
+            // Generar ambos Tokens
+            var refreshTokenCreado = CreateRefreshToken();
+            var tokenCreado = CreateToken(idUsuario.ToString());
+
+            return await SaveHistoryRefreshToken(idUsuario, tokenCreado, refreshTokenCreado);
         }
     }
 }
