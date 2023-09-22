@@ -1,6 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using LoginToken.Models;
 
+using LoginToken.Service;
+using Microsoft.Extensions.Configuration;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -16,6 +22,32 @@ builder.Services.AddDbContext<SesionTokenContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("connectionSQL"));
 });
 
+// Registramos el Servicio para que se utilice en todo el proyecto
+builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
+
+// Configurar JWT
+var key = builder.Configuration.GetValue<string>("JwtSetting.secretKey");
+var keyBytes = Encoding.ASCII.GetBytes(key);
+builder.Services.AddAuthentication(config =>
+{
+    config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(config =>
+{
+    // Deshabilitar el HTTPS
+    config.RequireHttpsMetadata = false;
+    config.SaveToken = true;
+    config.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true, // validar el usuario
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes), // credenciales del token
+        ValidateIssuer = false, // quién solicita el token
+        ValidateAudience = false, // desde dónde solicita el token
+        ValidateLifetime = true, // tiempo de vida del token 
+        ClockSkew = TimeSpan.Zero, // evitar desviasión del tiempo de vida del token
+    };
+}) ; 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -24,6 +56,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
