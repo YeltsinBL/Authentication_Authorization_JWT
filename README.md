@@ -21,6 +21,13 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
 - En el archivo [`appsettings.json`][appsettings] se agregó el 'ConnectionStrings' para agregar la conexión a la BD.
 - En el archivo [`Program.cs`][programcs] se hizo la referencia a archivo del Context que se autogeneró mediante la consola de nuget para posteriormente utilizar el 'ConnectionStrings'.
 
+## Configuración para el servicio de JWT
+
+- [`Models`][models]:
+  - AuthorizationRequest: para las credenciales del Login
+  - AuthorizationResponse: para la respuesta al Login
+- En el archivo [`appsettings.json`][appsettings] se agregó el 'JwtSetting' para agregar la clave secreta que creará el JWT.
+
 [//]: # (Enlaces a la documentación)
 
 [appsettings]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/blob/master/LoginToken/appsettings.json>
