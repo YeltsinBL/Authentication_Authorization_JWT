@@ -32,6 +32,10 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
 
   - [IAuthorizationService][iauthorizationservice]: interfaz para las authorizaciones del Token.
   - [AuthorizationService][authorizationservice]: clase heredada donde se implementa los métodos de la interfaz IAuthorizationService.
+- [`Controllers`][controller]:
+
+  - [UserController][usercontroller]: api para iniciar sesión
+  - [CountriesController][countriescontroller]: listado solo si ha iniciado sesión.
 
 [//]: # (Enlaces a la documentación)
 
@@ -42,3 +46,6 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
 [service]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Service>
 [iauthorizationservice]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Service/IAuthorizationService.cs>
 [authorizationservice]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Service/AuthorizationService.cs>
+[controller]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Controllers>
+[usercontroller]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Controllers/UserController.cs>
+[countriescontroller]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Controllers/CountriesController.cs>
