@@ -1,12 +1,40 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+﻿@using LoginBlazorWeb.Pages
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager navManager
+
+@*Encapsulamos el Router para poder acceder a la informaciónd el usuario
+	desde cualquiera de las etiquetas*@
+<CascadingAuthenticationState>
+
+	<Router AppAssembly="@typeof(App).Assembly">
+		<Found Context="routeData">
+			@*Verificar si el usuario intenta ingresar sin haber iniciado sesión o
+			no tiene permiso de rol
+			*@
+			<AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+				<NotAuthorized>
+					@{
+						if (context.User.Identity?.IsAuthenticated != true)
+						{
+							navManager.NavigateTo("/");
+						}
+						else
+						{
+							<p class="alert-danger">No está authorizado para este formulario</p>
+						}
+					}
+				</NotAuthorized>
+			</AuthorizeRouteView>
+			@*<RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+			<FocusOnNavigate RouteData="@routeData" Selector="h1" />
+			*@
+		</Found>
+		<NotFound>
+			<PageTitle>Not found</PageTitle>
+			<LayoutView Layout="@typeof(MainLayout)">
+				<p role="alert">Sorry, there's nothing at this address.</p>
+			</LayoutView>
+		</NotFound>
+	</Router>
+
+</CascadingAuthenticationState>
