@@ -54,6 +54,9 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
 - [Models][modelsView]
   - LoginDTO: credenciales del login.
   - SessionDTO: respuesta del api.
+- [Extensiones][extensionesView]
+  - SessionStorageExtension: métodos para guardar y obtener los datos en SessionStorage.
+  - AuthenticationExtension: lógica con los datos del usuario autenticado para guardarlo y obtenerlo del SessionStorage.
 
 [//]: # (Enlaces a la documentación)
 
@@ -68,3 +71,4 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
 [usercontroller]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Controllers/UserController.cs>
 [countriescontroller]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Controllers/CountriesController.cs>
 [modelsView]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginBlazorWeb/Models>
+[extensionesView]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginBlazorWeb/Extensiones>
