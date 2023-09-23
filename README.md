@@ -44,6 +44,11 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
 
 ## Web
 
+### NuGet Web
+
+- Blazored.SessionStorage
+- Microsoft.AspNetCore.Components.Authorization
+
 ### Configuración del Login
 
 - [Models][modelsView]
