@@ -9,6 +9,20 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Permitir hacer peticiones externas
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5019") //URL de la Web Local
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+        });
+});
+
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -44,7 +58,7 @@ builder.Services.AddAuthentication(config =>
         ValidateIssuer = false, // quién solicita el token
         ValidateAudience = false, // desde dónde solicita el token
         ValidateLifetime = true, // tiempo de vida del token 
-        ClockSkew = TimeSpan.Zero, // evitar desviasión del tiempo de vida del token
+        ClockSkew = TimeSpan.Zero, // evitar desviación del tiempo de vida del token
     };
 }) ; 
 
@@ -56,6 +70,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+// Permitir hacer peticiones externas
+app.UseCors();
 
 app.UseAuthentication();
 

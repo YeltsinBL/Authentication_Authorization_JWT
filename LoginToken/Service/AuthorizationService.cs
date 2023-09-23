@@ -115,7 +115,7 @@ namespace LoginToken.Service
             await _sesionTokenContext.SaveChangesAsync();
 
             return new AuthorizationResponse() { Token = token, RefreshToken = refreshToken,
-                Resultado = true, Msg ="OK" };
+                Resultado = true, Msg ="OK", Nombre="Prueba", Correo="prueba@prueba.com", Rol="Administrador" };
         
         }
 
