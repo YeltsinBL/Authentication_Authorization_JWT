@@ -42,6 +42,14 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
   - [UserController][usercontroller]: api para iniciar sesión y obtener el refresh token.
   - [CountriesController][countriescontroller]: listado solo si ha iniciado sesión.
 
+## Web
+
+### Configuración del Login
+
+- [Models][modelsView]
+  - LoginDTO: credenciales del login.
+  - SessionDTO: respuesta del api.
+
 [//]: # (Enlaces a la documentación)
 
 [appsettings]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/blob/master/LoginToken/appsettings.json>
@@ -54,3 +62,4 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
 [controller]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Controllers>
 [usercontroller]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Controllers/UserController.cs>
 [countriescontroller]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginToken/Controllers/CountriesController.cs>
+[modelsView]: <https://github.com/YeltsinBL/Authentication_Authorization_JWT/tree/master/LoginBlazorWeb/Models>
