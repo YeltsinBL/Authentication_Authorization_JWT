@@ -1,15 +1,17 @@
 # Authentication_Authorization_JWT
 
-Realización de API Rest para la autenticación y autorización del usuario, utilizando JWT.
+Realización de API Rest para la autenticación y autorización del usuario, utilizando JWT. También de un Login para realizar las pruebas del Api.
 
-## NuGet
+## API REST
+
+### NuGet
 
 - Microsoft.EntityFrameworkCore.SqlServer
 - Microsoft.EntityFrameworkCore.Tools
 - Microsoft.AspNetCore.Authentication.JwtBearer
 - System.IdentityModel.Tokens.Jwt
 
-## Conexión a la BD
+### Conexión a la BD
 
 - Se creó una carpeta [`Models`][logintoken] para que se cree automáticamente los modelos de las tablas.
 - Mediante el uso de la consola de comando de Nuget se agregó el siguiente comando:
@@ -21,14 +23,16 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
 - En el archivo [`appsettings.json`][appsettings] se agregó el 'ConnectionStrings' para agregar la conexión a la BD.
 - En el archivo [`Program.cs`][programcs] se hizo la referencia a archivo del Context que se autogeneró mediante la consola de nuget para posteriormente utilizar el 'ConnectionStrings'.
 
-## Configuración para el servicio de JWT
+### Configuración para el servicio de JWT
 
 - En el archivo [`appsettings.json`][appsettings] se agregó el 'JwtSetting' para agregar la clave secreta que creará el JWT.
-- En el archivo [`Program.cs`][programcs] se registró la interfaz y clase del Service, y también se configuró JWT en base del uso de las credenciales.
-- [`Models`][models]:
+- En el archivo [`Program.cs`][programcs] se registró la interfaz y clase del Service
+  - Se configuró JWT en base del uso de las credenciales.
+  - Se agregó el CORS para permitir hacer peticiones desde otras direcciones.
+- [`Models->Custom`][models]:
   - AuthorizationRequest: para las credenciales del Login.
   - AuthorizationResponse: para la respuesta al Login.
-  - Custom: carpeta donde están los modelos que recibe y devuelve la API.
+  - RefreshTokenRequest: para generar el access y refresh token.
 - [`Service`][service]:
 
   - [IAuthorizationService][iauthorizationservice]: interfaz para las autorizaciones del Token.
