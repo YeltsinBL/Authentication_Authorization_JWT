@@ -1,6 +1,10 @@
 ﻿@page "/fetchdata"
 @inject HttpClient Http
 
+@*solo accedeán las personas autenticadas*@
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrador")]
+
 <PageTitle>Weather forecast</PageTitle>
 
 <h1>Weather forecast</h1>
