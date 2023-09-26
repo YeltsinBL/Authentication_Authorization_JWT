@@ -54,11 +54,11 @@ namespace LoginToken.Service
                 );
             // Descripción del Token
             var tok = new JwtSecurityToken(
-                _configuration["http://localhost"],
-                _configuration["http://localhost"],
-                claims,
-                expires: DateTime.UtcNow.AddMinutes(1),
-                signingCredentials: credencialesToken
+                "", // identificar quién emitió el JWT
+				"", // identificar el destinatario del JWT
+				claims, // información del usuario
+                expires: DateTime.UtcNow.AddMinutes(1), // tiempo de expiración del JWT
+                signingCredentials: credencialesToken // credenciales del JWT
                 );
             //var tokenDescripcion = new SecurityTokenDescriptor
             //{
