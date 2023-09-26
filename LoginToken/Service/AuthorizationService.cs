@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
 using System.Security.Cryptography;
+using System.Data;
 
 namespace LoginToken.Service
 {
@@ -23,34 +24,56 @@ namespace LoginToken.Service
         }
 
         // Generar el Token
-        private string CreateToken(string idUsuario)
+        private string CreateToken(string idUsuario, string nombre_usuario)
         {
             // Accedemos a la clave secreta para el JWT
             var key = _configuration.GetValue<string>("JwtSetting:secretKey");
             // convetimos la clave en array
             var keyBytes = Encoding.ASCII.GetBytes(key);
             // Agregar la información del usuario al Token
-            var claims = new ClaimsIdentity();
-            claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, idUsuario));
+            //var claims = new ClaimsIdentity();
+            //claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, idUsuario));
+            //claims.AddClaim(new Claim(ClaimTypes.Role, "Administrador"));
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, idUsuario),
+				new Claim(ClaimTypes.Name, nombre_usuario)
+			};
+            var roles = new[]
+            {
+                "Administrador", "Supervisor"
+            };
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
             // Crear credencial para el Token
             var credencialesToken = new SigningCredentials(
                 new SymmetricSecurityKey(keyBytes),
                 SecurityAlgorithms.HmacSha256Signature
                 );
             // Descripción del Token
-            var tokenDescripcion = new SecurityTokenDescriptor
-            {
-                Subject = claims,
-                Expires = DateTime.UtcNow.AddMinutes(1),
-                SigningCredentials = credencialesToken
-            };
+            var tok = new JwtSecurityToken(
+                _configuration["http://localhost"],
+                _configuration["http://localhost"],
+                claims,
+                expires: DateTime.UtcNow.AddMinutes(1),
+                signingCredentials: credencialesToken
+                );
+            //var tokenDescripcion = new SecurityTokenDescriptor
+            //{
+            //    //Subject = claims,
+            //    Claims= (IDictionary<string, object>)claims,
+            //    Expires = DateTime.UtcNow.AddMinutes(1),
+            //    SigningCredentials = credencialesToken
+            //};
 
             // Crear los controladores del JWT
             var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenConfig = tokenHandler.CreateToken(tokenDescripcion);
+            //var tokenConfig = tokenHandler.CreateToken(tokenDescripcion);
 
             // obtener el Token
-            string tokenCreado = tokenHandler.WriteToken(tokenConfig);
+            string tokenCreado = tokenHandler.WriteToken(tok);
 
             return tokenCreado;
 
@@ -75,7 +98,8 @@ namespace LoginToken.Service
                 return await Task.FromResult<AuthorizationResponse>(result: new AuthorizationResponse { Resultado = false, Msg = "Contraseña incorrecta" });
             }
 
-            string tokenCreado = CreateToken(usuario_registrado.IdUsuario.ToString());
+            string tokenCreado = CreateToken(usuario_registrado.IdUsuario.ToString(),
+                usuario_registrado.NombreUsuario.ToString());
 
             // devolvemos el Refresh Token
             string refreshToquenCreado = CreateRefreshToken();
@@ -119,7 +143,8 @@ namespace LoginToken.Service
         
         }
 
-        public async Task<AuthorizationResponse> RefreshTokenResponse(RefreshTokenRequest refreshTokenRequest, int idUsuario)
+        public async Task<AuthorizationResponse> RefreshTokenResponse(RefreshTokenRequest refreshTokenRequest, int idUsuario,
+            string nombre_usuario)
         {
             var refreshTokenRegistrado = _sesionTokenContext.HistorialRefreshTokens.FirstOrDefault(X =>
                 X.Token == refreshTokenRequest.TokenExpirado &&
@@ -131,7 +156,7 @@ namespace LoginToken.Service
             }
             // Generar ambos Tokens
             var refreshTokenCreado = CreateRefreshToken();
-            var tokenCreado = CreateToken(idUsuario.ToString());
+            var tokenCreado = CreateToken(idUsuario.ToString(), nombre_usuario.ToString());
 
             return await SaveHistoryRefreshToken(idUsuario, tokenCreado, refreshTokenCreado);
         }
