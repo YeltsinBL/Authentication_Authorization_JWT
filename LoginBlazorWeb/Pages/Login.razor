@@ -1,12 +1,13 @@
 ﻿@page "/"
 @layout LoginLayout
 
-@inject HttpClient HttpClient
+@*@inject HttpClient HttpClient*@
 @using LoginBlazorWeb.Models
 @using LoginBlazorWeb.Extensiones
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider autenticacionProvider
 @inject NavigationManager navManager
+@inject IHttpClientFactory _httpClientFactory
 
 
 <div class="row mt-5">
@@ -39,7 +40,8 @@
 
     private async Task IniciarSesion()
     {
-        var loginResponse = await HttpClient.PostAsJsonAsync<LoginDTO>("api/User/Authenticate", login);
+        var httpClient = _httpClientFactory.CreateClient("registerApi");
+        var loginResponse = await httpClient.PostAsJsonAsync<LoginDTO>("api/User/Authenticate", login);
         if (loginResponse.IsSuccessStatusCode)
         {
             var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();
