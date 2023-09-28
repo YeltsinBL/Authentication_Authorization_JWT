@@ -1,9 +1,10 @@
 ﻿@page "/fetchdata"
-@inject HttpClient Http
+@*@inject HttpClient Http*@
+@inject IHttpClientFactory _httpClientFactory
 
 @*solo accedeán las personas autenticadas*@
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Administrador")]
+@attribute [Authorize(Roles = "Supervisor")]
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -45,7 +46,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        var httpClient = _httpClientFactory.CreateClient("registerApi");
+        forecasts = await httpClient.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
     }
 
     public class WeatherForecast

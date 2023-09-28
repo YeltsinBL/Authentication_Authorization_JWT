@@ -24,11 +24,11 @@ Welcome to your new app.
 @code {
 	private string UserDataSessionStare(List<Claim> claims)
 	{
-		var id = claims.Where(_ => _.Type == ClaimTypes.Name)
+		var nombre = claims.Where(_ => _.Type == ClaimTypes.Name)
 						.Select(_ => _.Value).FirstOrDefault();
-		if (!string.IsNullOrEmpty(id))
+		if (!string.IsNullOrEmpty(nombre))
 		{
-			return $"{id}";
+			return $"{nombre}";
 		}
 		return "Sin dato";
 	}
