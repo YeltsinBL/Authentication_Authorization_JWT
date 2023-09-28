@@ -3,6 +3,7 @@
 @*solo accedeán las personas autenticadas*@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims;
 @attribute [Authorize]
 
 <PageTitle>Index</PageTitle>
@@ -14,8 +15,21 @@ Welcome to your new app.
 @*Vista para personas autorizadas*@
 <AuthorizeView>
 	<Authorized>
-		<h1>Bienvenido @context.User.Identity!.Name</h1>
+		@*<h1>Bienvenido @context.User.Identity!.Name</h1>*@
+		<h1>Bienvenido @UserDataSessionStare(context.User.Claims.ToList())</h1>
 	</Authorized>
 </AuthorizeView>
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+@code {
+	private string UserDataSessionStare(List<Claim> claims)
+	{
+		var id = claims.Where(_ => _.Type == ClaimTypes.Name)
+						.Select(_ => _.Value).FirstOrDefault();
+		if (!string.IsNullOrEmpty(id))
+		{
+			return $"{id}";
+		}
+		return "Sin dato";
+	}
+}

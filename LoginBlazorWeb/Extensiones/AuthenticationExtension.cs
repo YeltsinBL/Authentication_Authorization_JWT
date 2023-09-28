@@ -9,10 +9,10 @@ namespace LoginBlazorWeb.Extensiones
 {
     public class AuthenticationExtension : AuthenticationStateProvider
     {
-        //private readonly ISessionStorageService _sessionStorageService;
         private readonly ILocalStorageService _localStorageService;
+        private ClaimsPrincipal _sininformacion = new ClaimsPrincipal(new ClaimsIdentity());
 
-        public AuthenticationExtension(//ISessionStorageService sessionStorageService,
+        public AuthenticationExtension(
             ILocalStorageService localStorageService
             )
         {
@@ -20,33 +20,33 @@ namespace LoginBlazorWeb.Extensiones
             _localStorageService = localStorageService;
         }
 
-        private ClaimsPrincipal _sininformacion = new ClaimsPrincipal(new ClaimsIdentity());
-
-
         // actualizar el estado de autenticación cuando el usuario a iniciado sesión
         public async Task ActualizarEstadoAutenticacion(SessionDTO? sessionUsuario)
         {
             ClaimsPrincipal claimsPrincipal;
             if (sessionUsuario != null)
             {
-                claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, sessionUsuario.Nombre),
-                    //new Claim(ClaimTypes.Email, sessionUsuario.Correo),
-                    new Claim(ClaimTypes.Role, sessionUsuario.Rol),
-                    new Claim("Token", sessionUsuario.Token),
-                    new Claim("RefreshToken", sessionUsuario.RefreshToken)
-                },"JwtAuth"));
+                //claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+                //{
+                //    new Claim(ClaimTypes.Name, sessionUsuario.Nombre),
+                //    //new Claim(ClaimTypes.Email, sessionUsuario.Correo),
+                //    new Claim(ClaimTypes.Role, sessionUsuario.Rol),
+                //    new Claim("Token", sessionUsuario.Token),
+                //    new Claim("RefreshToken", sessionUsuario.RefreshToken)
+                //},"JwtAuth"));
+
+                claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(Utility.ParseClaimsFromJwt(sessionUsuario.Token), "JwtAuth"));
+
                 // guarda la sesión del ususario
-                //await _sessionStorageService.GuardarStorage("sesionUsuario", sessionUsuario);
-                await _localStorageService.GuardarLocalStorage("sesionUsuario", sessionUsuario);
+                await _localStorageService.GuardarLocalStorage("sesionUsuario", sessionUsuario.Token);
+                await _localStorageService.GuardarLocalStorage("sesionUsuarioRefresh", sessionUsuario.RefreshToken);
             }
             else
             {
                 claimsPrincipal = _sininformacion;
                 // para eliminar la sesión del usuario
-                //await _sessionStorageService.RemoveItemAsync("sesionUsuario");
                 await _localStorageService.RemoveItemAsync("sesionUsuario");
+                await _localStorageService.RemoveItemAsync("sesionUsuarioRefresh");
             }
             // Notificar al servicio de autenticación que se ha cambiado el estado
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
@@ -57,8 +57,8 @@ namespace LoginBlazorWeb.Extensiones
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             // obtenemos la sesión del usuario
-            //var sesionUsuario = await _sessionStorageService.ObtenerStorage<SessionDTO>("sesionUsuario");
-            var sesionUsuario = await _localStorageService.ObtenerLocalStorage<SessionDTO>("sesionUsuario");
+            //var sesionUsuario = await _localStorageService.ObtenerLocalStorage<SessionDTO>("sesionUsuario");
+            var sesionUsuario = await _localStorageService.ObtenerLocalStorage<string>("sesionUsuario");
             if (sesionUsuario == null)
                 return await Task.FromResult(new AuthenticationState(_sininformacion));
 
@@ -71,34 +71,14 @@ namespace LoginBlazorWeb.Extensiones
             //        new Claim("Token", sesionUsuario.Token),
             //        new Claim("RefreshToken", sesionUsuario.RefreshToken)
             //    }, "JwtAuth"));
-            var claimPrincipal = new ClaimsPrincipal(new ClaimsIdentity(
-                ParseClaimsFromJwt(sesionUsuario.Token), "JwtAuth"));
-            return await Task.FromResult(new AuthenticationState(claimPrincipal));
-        
+            //var claimPrincipal = new ClaimsPrincipal(new ClaimsIdentity(
+            //    ParseClaimsFromJwt(sesionUsuario.Token), "JwtAuth"));
+            //return await Task.FromResult(new AuthenticationState(claimPrincipal));
+            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(Utility.ParseClaimsFromJwt(sesionUsuario), "JwtAuth"));
+            var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
+            NotifyAuthenticationStateChanged(authState);
+            return await Task.FromResult(new AuthenticationState(authenticatedUser));
         }
 
-        // Leer el Token
-        private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
-        {
-            var payload = jwt.Split('.')[1];
-            var jsonBytes = ParseBase64WithoutPadding(payload);
-            var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
-            return keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString()));
-        }
-
-        private static byte[] ParseBase64WithoutPadding(string base64)
-        {
-            switch (base64.Length % 4)
-            {
-                case 2: base64 += "=="; break;
-                case 3: base64 += "="; break;
-            }
-            return Convert.FromBase64String(base64);
-        }
-
-        //public void NotifyAuthState()
-        //{
-        //    NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-        //}
     }
 }
