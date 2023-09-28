@@ -36,8 +36,20 @@
 
 </div>
 @code {
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
     private LoginDTO login = new LoginDTO();
 
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthenticationState).User;
+        if (user.Identity.IsAuthenticated)
+        {
+            navManager.NavigateTo("/index");
+        }
+        await base.OnInitializedAsync();
+    }
     private async Task IniciarSesion()
     {
         var httpClient = _httpClientFactory.CreateClient("registerApi");
