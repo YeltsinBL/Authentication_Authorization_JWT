@@ -12,14 +12,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Permitir hacer peticiones externas
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5019", "http://localhost:5294") //URL de la Web Local
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
-        });
+    //options.AddDefaultPolicy(
+    //    policy =>
+    //    {
+    //        policy.WithOrigins("http://localhost:5019", "http://localhost:5294") //URL de la Web Local
+    //        .AllowAnyMethod()
+    //        .AllowAnyHeader()
+    //        .AllowCredentials();
+    //    });
+    options.AddDefaultPolicy(builder =>
+     builder.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader());
 });
 
 
