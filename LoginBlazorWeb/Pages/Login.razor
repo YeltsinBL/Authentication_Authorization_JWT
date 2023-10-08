@@ -4,11 +4,19 @@
 @*@inject HttpClient HttpClient*@
 @using LoginBlazorWeb.Models
 @using LoginBlazorWeb.Extensiones
+@using LoginBlazorWeb.Service;
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider autenticacionProvider
 @inject NavigationManager navManager
 @inject IHttpClientFactory _httpClientFactory
+@inject IAuthService AuthService
 
+@if (ShowErrors)
+{
+    <div class="alert alert-danger" role="alert">
+        <p>@Error</p>
+    </div>
+}
 
 <div class="row mt-5">
 
@@ -50,18 +58,37 @@
         }
         await base.OnInitializedAsync();
     }
+
+    private bool ShowErrors;
+    private string Error = "";
+
     private async Task IniciarSesion()
     {
-        var httpClient = _httpClientFactory.CreateClient("registerApi");
-        var loginResponse = await httpClient.PostAsJsonAsync<LoginDTO>("api/User/Authenticate", login);
-        if (loginResponse.IsSuccessStatusCode)
-        {
-            var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();
-            var autenticacionExt = (AuthenticationExtension)autenticacionProvider;
-            await autenticacionExt.ActualizarEstadoAutenticacion(sesionUsuario);
+        //var httpClient = _httpClientFactory.CreateClient("registerApi");
+        //var loginResponse = await httpClient.PostAsJsonAsync<LoginDTO>("api/User/Authenticate", login);
+        //if (loginResponse.IsSuccessStatusCode)
+        //{
+        //    var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();
+        //    var autenticacionExt = (AuthenticationExtension)autenticacionProvider;
+        //    await autenticacionExt.ActualizarEstadoAutenticacion(sesionUsuario);
 
+        //    navManager.NavigateTo("/index");
+        //}
+
+        /**Otra forma**/
+        ShowErrors = false;
+        var result = await AuthService.Login(login);
+
+        if (result.Resultado)
+        {
             navManager.NavigateTo("/index");
         }
+        else
+        {
+            Error = result.Msg!;
+            ShowErrors = true;
+        }
+
     }
 
         
