@@ -9,21 +9,25 @@ namespace LoginBlazorWeb.Service
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly AuthenticationStateProvider _authenticationStateProvider;
+        private readonly IConfiguration _configuration;
 
         public AuthService(IHttpClientFactory httpClientFactory,
-            AuthenticationStateProvider authenticationStateProvider)
+            AuthenticationStateProvider authenticationStateProvider,
+            IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _authenticationStateProvider = authenticationStateProvider;
+            _configuration = configuration;
         }
 
         public async Task<SessionDTO> Login(LoginDTO loginModel)
         {
             var clave_encriptada = Utility.GetSHA256(loginModel.clave);
-            var httpClient = _httpClientFactory.CreateClient("registerApi");
-            //var loginResponse = await httpClient.PostAsJsonAsync("api/User/Authenticate", loginModel);
+            var key = Utility.GetRequestUri(_configuration, "registrarHttp");
+            var requestUri = Utility.GetRequestUri(_configuration, "authentication",2);
+            var httpClient = _httpClientFactory.CreateClient(key!);
             var newLoginDto = new LoginDTO() { clave = clave_encriptada, nombreUsuario = loginModel.nombreUsuario };
-            var loginResponse = await httpClient.PostAsJsonAsync("api/User/Authenticate", newLoginDto);
+            var loginResponse = await httpClient.PostAsJsonAsync(requestUri!, newLoginDto);
             var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();
             if (loginResponse.IsSuccessStatusCode)
             {

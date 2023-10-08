@@ -1,7 +1,9 @@
-﻿using System.Security.Claims;
+﻿using Microsoft.Extensions.Configuration;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace LoginBlazorWeb.Extensiones
 {
@@ -72,6 +74,24 @@ namespace LoginBlazorWeb.Extensiones
 
             return stringBuilder.ToString();
 
+        }
+
+        /// <summary>
+        /// <para>
+        /// Método para obtener el RequestUri del appsettings
+        /// </para>
+        /// </summary>
+        /// <param name="configuration">La interfaz de configuración de la aplicación</param>
+        /// <param name="name_path">Parte final del RequestUri</param>
+        /// <param name="nivel">Nivel de llaves en el json</param>
+        /// <returns>
+        /// Este metodo devuelve el RequestUri de acuerdo al path final
+        /// </returns>
+        public static string GetRequestUri(IConfiguration configuration, string name_path, int nivel=1)
+        {
+            if (nivel == 2)
+                return configuration.GetValue<string>("httpClient:requestUri:" + name_path);
+            return configuration.GetValue<string>("httpClient:" + name_path);
         }
     }
 }

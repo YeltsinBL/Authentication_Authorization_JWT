@@ -1,6 +1,6 @@
 ﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
 using LoginBlazorWeb.Models;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -11,16 +11,19 @@ namespace LoginBlazorWeb.Extensiones
         private readonly ILocalStorageService _localStorageService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly AuthenticationStateProvider _authenticationStateProvider;
+        private readonly IConfiguration _configuration;
 
         public CustomHttpHandler(
             ILocalStorageService localStorageService,
             IHttpClientFactory httpClientFactory,
-            AuthenticationStateProvider authenticationStateProvider
+            AuthenticationStateProvider authenticationStateProvider,
+            IConfiguration configuration
             )
         {
             _localStorageService = localStorageService;
             _httpClientFactory = httpClientFactory;
             _authenticationStateProvider = authenticationStateProvider;
+            _configuration = configuration;
         }
         // Ejecutar este método antes de que se envíe la solicitud al servidor
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -57,10 +60,13 @@ namespace LoginBlazorWeb.Extensiones
 			var newTokenRequest = new RefreshTokenDTO()
 			{
 				RefreshToken = sesionUsuarioRefresh,
-				TokenExpirado = sesionUsuario
+                TokenExpirado = sesionUsuario
 			};
-			var httpClient = _httpClientFactory.CreateClient("registerApi");
-			var refreshTokenResponse = await httpClient.PostAsJsonAsync<RefreshTokenDTO>("api/User/GetRefreshToken", newTokenRequest);
+
+            var key = Utility.GetRequestUri(_configuration, "registrarHttp");
+            var request_uri = Utility.GetRequestUri(_configuration, "getRefreshToken", 2);
+            var httpClient = _httpClientFactory.CreateClient(key!);
+			var refreshTokenResponse = await httpClient.PostAsJsonAsync<RefreshTokenDTO>(request_uri, newTokenRequest, cancellationToken: cancellationToken);
 			if (refreshTokenResponse.StatusCode == HttpStatusCode.OK)
 			{
 				// obtenemos los tokens y los almacenamos en SessionStorage
@@ -70,7 +76,8 @@ namespace LoginBlazorWeb.Extensiones
 
 				// eliminamos el token expirado del encabezado
 				originalRequest.Headers.Remove("Authorization");
-				originalRequest.Headers.Add("Authorization", $"Bearer {tokensResponse.Token}");
+                // agregamos el nuevo token al encabezado
+                originalRequest.Headers.Add("Authorization", $"Bearer {tokensResponse.Token}");
 				// volvemos hacer la petición fallida
 				return await base.SendAsync(originalRequest, cancellationToken);
 			}

@@ -1,9 +1,7 @@
-﻿using Blazored.SessionStorage;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Blazored.LocalStorage;
 using LoginBlazorWeb.Models;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
-using Blazored.LocalStorage;
-using System.Text.Json;
 
 namespace LoginBlazorWeb.Extensiones
 {
