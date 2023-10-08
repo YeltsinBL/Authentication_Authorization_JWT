@@ -1,4 +1,6 @@
 ﻿using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace LoginBlazorWeb.Extensiones
@@ -51,6 +53,25 @@ namespace LoginBlazorWeb.Extensiones
                 case 3: base64 += "="; break;
             }
             return Convert.FromBase64String(base64);
+        }
+        /// <summary>
+        /// <para>
+        /// Método para encriptar datos con SHA256
+        /// </para>
+        /// </summary>
+        /// <param name="valor">Un valor de tipo cadena</param>
+        /// <returns>
+        /// Este metodo devuelve un dato encriptado
+        /// </returns>
+        public static string GetSHA256(string valor)
+        {
+            ASCIIEncoding aSCIIEncoding = new();
+            StringBuilder stringBuilder = new();
+            byte[] stream = SHA256.HashData(aSCIIEncoding.GetBytes(valor));
+            for (int i = 0; i < stream.Length; i++) stringBuilder.AppendFormat("{0:x2}", stream[i]);
+
+            return stringBuilder.ToString();
+
         }
     }
 }

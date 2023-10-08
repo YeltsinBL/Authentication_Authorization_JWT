@@ -19,8 +19,11 @@ namespace LoginBlazorWeb.Service
 
         public async Task<SessionDTO> Login(LoginDTO loginModel)
         {
+            var clave_encriptada = Utility.GetSHA256(loginModel.clave);
             var httpClient = _httpClientFactory.CreateClient("registerApi");
-            var loginResponse = await httpClient.PostAsJsonAsync("api/User/Authenticate", loginModel);
+            //var loginResponse = await httpClient.PostAsJsonAsync("api/User/Authenticate", loginModel);
+            var newLoginDto = new LoginDTO() { clave = clave_encriptada, nombreUsuario = loginModel.nombreUsuario };
+            var loginResponse = await httpClient.PostAsJsonAsync("api/User/Authenticate", newLoginDto);
             var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();
             if (loginResponse.IsSuccessStatusCode)
             {
