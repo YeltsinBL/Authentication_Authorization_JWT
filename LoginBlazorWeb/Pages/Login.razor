@@ -33,7 +33,20 @@
 
         <div class="mb-3">
             <label>Contraseña</label>
-            <input @bind="login.clave" class="form-control" />
+            @*<input @bind="login.clave" class="form-control"/>*@
+            <div class="input-group">
+                <input @bind="login.clave" class="form-control" type="@inputType" />
+                <button type="button" @onclick="toggleMasedMode">
+                    @if (maskedMode)
+                    {
+                        <span class="oi oi-eye" title="Mostrar contraseña"></span>
+                    }
+                    else
+                    {
+                        <span class="oi oi-ban" title="Ocultar contraseña"></span>
+                    }
+                </button>
+            </div>
         </div>
 
         <div class="mb-3">
@@ -91,5 +104,24 @@
 
     }
 
+    /**Ocultar y mostrar contraseña**/
+    bool maskedMode = true;
+    string btnCss = "btn btn-outline-primary";
+    string inputType = "password";
+    void toggleMasedMode()
+    {
+        maskedMode = !maskedMode;
+        if (maskedMode)
+        {
+            btnCss = "btn btn-outline-primary";
+            inputType = "password";
+
+        }
+        else
+        {
+            btnCss = "btn btn-outline-danger";
+            inputType = "text";
+        }
+    }
         
 }
