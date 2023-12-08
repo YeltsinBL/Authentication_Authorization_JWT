@@ -55,5 +55,17 @@ namespace LoginToken.Controllers
             } else
                 return BadRequest(autorizacionResponse);
         }
+
+        [HttpPost]
+        [Route("RegisterAccount")]
+        public async Task<IActionResult> Register(RegisterRequest registerRequest)
+        {
+            var result = await _authorizationService.RegisterAccount(registerRequest);
+            if (!result.Resultado)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
     }
 }

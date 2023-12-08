@@ -89,14 +89,18 @@ namespace LoginToken.Service
             {
                 return await Task.FromResult<AuthorizationResponse>(result: new AuthorizationResponse { Resultado = false, Msg = "Usuario incorrecto" });
             }
-            usuario_registrado = _sesionTokenContext.Usuarios.FirstOrDefault(x =>
-                x.NombreUsuario == authorizationRequest.NombreUsuario &&
-                x.Clave == authorizationRequest.Clave
-            );
-            if (usuario_registrado == null){
-                //return await Task.FromResult<AuthorizationResponse>(null);
+            if (!VerifyPasswordHash(authorizationRequest.Clave, usuario_registrado.Clave, usuario_registrado.ClaveSalt))
+            {
                 return await Task.FromResult<AuthorizationResponse>(result: new AuthorizationResponse { Resultado = false, Msg = "Contraseña incorrecta" });
             }
+            usuario_registrado = _sesionTokenContext.Usuarios.FirstOrDefault(x =>
+                x.NombreUsuario == authorizationRequest.NombreUsuario &&
+                x.Clave == usuario_registrado.Clave
+            );
+            //if (usuario_registrado == null){
+            //    //return await Task.FromResult<AuthorizationResponse>(null);
+            //    return await Task.FromResult<AuthorizationResponse>(result: new AuthorizationResponse { Resultado = false, Msg = "Contraseña incorrecta" });
+            //}
 
             string tokenCreado = CreateToken(usuario_registrado.IdUsuario.ToString(),
                 usuario_registrado.NombreUsuario.ToString());
@@ -160,5 +164,68 @@ namespace LoginToken.Service
 
             return await SaveHistoryRefreshToken(idUsuario, tokenCreado, refreshTokenCreado);
         }
+
+        #region Verificar Iniciar Sesión
+        /// <summary>
+        /// Verificar la contraseña encriptada
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="claveHash"></param>
+        /// <param name="claveSalt"></param>
+        private bool VerifyPasswordHash(string password, byte[] claveHash, byte[] claveSalt)
+        {
+            // indicamos a partir de cual contraseña calculamos el Hash
+            using var hmac = new HMACSHA512(claveSalt); 
+            var calcularHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return calcularHash.SequenceEqual(claveHash);
+        }
+        #endregion
+
+        #region Crear Cuenta
+
+        public async Task<AuthorizationResponse> RegisterAccount(RegisterRequest registerRequest)
+        {
+            if (_sesionTokenContext.Usuarios.Any(u => u.NombreUsuario == registerRequest.Usuario))
+            {
+                return new AuthorizationResponse { Resultado = false, Msg = "El usuario ya existe" }; ;
+            }
+
+            CreatePasswordHash(registerRequest.Password, out byte[] claveHash, out byte[] claveSalt);
+            var user = new Usuario
+            {
+                NombreUsuario = registerRequest.Usuario,
+                Clave = claveHash,
+                ClaveSalt = claveSalt,
+                VerificarToken = CreateRandomToken()
+            };
+            _sesionTokenContext.Usuarios.Add(user);
+            await _sesionTokenContext.SaveChangesAsync();
+            return new AuthorizationResponse { Resultado = true, Msg = "Cuenta Creada" }; ;
+        }
+
+
+        /// <summary>
+        /// Crear las encriptaciones para la contraseña
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="claveHash"></param>
+        /// <param name="claveSalt"></param>
+        private void CreatePasswordHash(string password, out byte[] claveHash, out byte[] claveSalt)
+        {
+            using var hmac = new HMACSHA512();
+            claveSalt = hmac.Key;// genera una clave aleatoria
+            claveHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+        }
+        /// <summary>
+        /// Generar un token de verificación
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        private string CreateRandomToken()
+        {
+            return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
+        }
+
+        #endregion
     }
 }

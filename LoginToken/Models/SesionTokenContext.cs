@@ -51,11 +51,16 @@ public partial class SesionTokenContext : DbContext
 
             entity.ToTable("Usuario");
 
-            entity.Property(e => e.Clave)
-                .HasMaxLength(20)
+            entity.Property(e => e.ClaveResetToken)
+                .HasMaxLength(500)
                 .IsUnicode(false);
             entity.Property(e => e.NombreUsuario)
                 .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.ResetTokenExpires).HasColumnType("datetime");
+            entity.Property(e => e.Verificar).HasColumnType("datetime");
+            entity.Property(e => e.VerificarToken)
+                .HasMaxLength(500)
                 .IsUnicode(false);
         });
 

@@ -34,11 +34,12 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
   - AuthorizationRequest: para las credenciales del Login.
   - AuthorizationResponse: para la respuesta al Login.
   - RefreshTokenRequest: para generar el access y refresh token.
+  - RegisterRequest: para las credenciales al crear una cuenta
 - [`Service`][service]:
-  - [IAuthorizationService][iauthorizationservice]: interfaz para las autorizaciones del Token.
+  - [IAuthorizationService][iauthorizationservice]: interfaz para las autorizaciones: login con Token y registrar cuenta.
   - [AuthorizationService][authorizationservice]: clase heredada donde se implementa los métodos de la interfaz IAuthorizationService y se agrega métodos privados para la creación y guardado del Access y Refresh Token en la BD.
 - [`Controllers`][controller]:
-  - [UserController][usercontroller]: api para iniciar sesión y obtener el refresh token.
+  - [UserController][usercontroller]: api para iniciar sesión, obtener el refresh token y crear cuenta.
   - [CountriesController][countriescontroller]: listado solo si ha iniciado sesión.
 
 ## Web
