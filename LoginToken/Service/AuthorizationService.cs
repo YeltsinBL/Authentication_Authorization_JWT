@@ -9,6 +9,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
 using System.Security.Cryptography;
 using System.Data;
+using System;
+using MailKit.Security;
+using MimeKit.Text;
+using MimeKit;
+using static Org.BouncyCastle.Math.EC.ECCurve;
+using MailKit.Net.Smtp;
 
 namespace LoginToken.Service
 {
@@ -191,16 +197,20 @@ namespace LoginToken.Service
             }
 
             CreatePasswordHash(registerRequest.Password, out byte[] claveHash, out byte[] claveSalt);
+
+            var validEmailToken = CreateRandomToken();
             var user = new Usuario
             {
                 NombreUsuario = registerRequest.Usuario,
                 Clave = claveHash,
                 ClaveSalt = claveSalt,
-                VerificarToken = CreateRandomToken()
+                VerificarToken = validEmailToken
             };
             _sesionTokenContext.Usuarios.Add(user);
             await _sesionTokenContext.SaveChangesAsync();
-            return new AuthorizationResponse { Resultado = true, Msg = "Cuenta Creada" }; ;
+                        
+            SendEmail(registerRequest.Usuario, validEmailToken);
+            return new AuthorizationResponse { Resultado = true, Msg = "Cuenta Creada" };
         }
 
 
@@ -225,7 +235,55 @@ namespace LoginToken.Service
         {
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
         }
+        #endregion
 
+        #region Enviar Correo a la Cuenta Creada
+        /// <summary>
+        /// Enviar mensaje de verificación al correo
+        /// </summary>
+        /// <param name="usuario"></param>
+        /// <param name="validEmailToken"></param>
+        private void SendEmail(string usuario, string validEmailToken)
+        {
+            string url = $"{_configuration["AppUrl"]}/api/User/ConfirmAccount?usuario={usuario}&token={validEmailToken}";
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(_configuration.GetSection("EmailUsername").Value));
+            email.To.Add(MailboxAddress.Parse(_configuration.GetSection("EmailUsername").Value));
+            email.Subject = "Confirmar Cuenta";
+            email.Body = new TextPart(TextFormat.Html) { Text = $"<p>Práctica de Confirmar Correo {usuario} </p> <p>Por favor, confirma tu correo electrónico haciendo <a href='{url}'>Click aquí</a></p>" };
+
+            using var smtp = new SmtpClient();
+            smtp.Connect(_configuration.GetSection("EmailHost").Value, 587, SecureSocketOptions.StartTls);
+            smtp.Authenticate(_configuration.GetSection("EmailUsername").Value, _configuration.GetSection("EmailPassword").Value);
+            smtp.Send(email);
+            smtp.Disconnect(true);
+        }
+        #endregion
+
+        #region Verificar Cuenta Creada
+        /// <summary>
+        /// Verificar la cuenta por el usuario y token generado
+        /// </summary>
+        /// <param name="usuario"></param>
+        /// <param name="token_verificar"></param>
+        /// <returns>URL para el login de la web</returns>
+        public async Task<AuthorizationResponse> VerifyRegisterAccount(string usuario, string token_verificar)
+        {
+            if (string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(token_verificar))
+            {
+                return new AuthorizationResponse { Resultado = false, Msg = "Formato de usuario o token inválidos" };
+            }
+            var user = _sesionTokenContext.Usuarios.FirstOrDefault(u => 
+                        u.NombreUsuario== usuario &&
+                        u.VerificarToken == token_verificar);
+            if (user == null)
+            {
+                return new AuthorizationResponse { Resultado = false, Msg = "Usuario o token inválido" };
+            }
+            user.Verificar = DateTime.Now;
+            await _sesionTokenContext.SaveChangesAsync();
+            return new AuthorizationResponse { Resultado = true, Msg = $"{_configuration["AppUrlWeb"]}"! };
+        }
         #endregion
     }
 }

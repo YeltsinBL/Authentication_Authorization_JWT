@@ -67,5 +67,16 @@ namespace LoginToken.Controllers
             }
             return Ok(result);
         }
+        [HttpGet]
+        [Route("ConfirmAccount")]
+        public async Task<IActionResult> ConfirmarCuenta(string usuario, string token)
+        {
+            var result = await _authorizationService.VerifyRegisterAccount(usuario, token);
+            if (!result.Resultado)
+            {
+                return BadRequest(result);
+            }
+            return Redirect(result.Msg);
+        }
     }
 }

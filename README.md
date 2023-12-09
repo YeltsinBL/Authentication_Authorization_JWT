@@ -10,6 +10,7 @@ Realización de API Rest para la autenticación y autorización del usuario, uti
 - Microsoft.EntityFrameworkCore.Tools
 - Microsoft.AspNetCore.Authentication.JwtBearer
 - System.IdentityModel.Tokens.Jwt
+- MailKit
 
 ### Conexión a la BD
 
@@ -20,7 +21,10 @@ Realización de API Rest para la autenticación y autorización del usuario, uti
 Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connection=True; TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir [nombre de la carpeta creado]
 ```
 
-- En el archivo [`appsettings.json`][appsettings] se agregó el 'ConnectionStrings' para agregar la conexión a la BD.
+- En el archivo [`appsettings.json`][appsettings]:
+  - 'ConnectionStrings' para agregar la conexión a la BD.
+  - 'JwtSetting' para la clave secreta.
+  - Datos para las pruebas de enviar correo y redireccionamiento al confirmar.
 - En el archivo [`Program.cs`][programcs] se hizo la referencia a archivo del Context que se autogeneró mediante la consola de nuget para posteriormente utilizar el 'ConnectionStrings'.
 
 ### Configuración para el servicio de JWT
@@ -39,7 +43,7 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
   - [IAuthorizationService][iauthorizationservice]: interfaz para las autorizaciones: login con Token y registrar cuenta.
   - [AuthorizationService][authorizationservice]: clase heredada donde se implementa los métodos de la interfaz IAuthorizationService y se agrega métodos privados para la creación y guardado del Access y Refresh Token en la BD.
 - [`Controllers`][controller]:
-  - [UserController][usercontroller]: api para iniciar sesión, obtener el refresh token y crear cuenta.
+  - [UserController][usercontroller]: api para iniciar sesión, obtener el refresh token, crear cuenta y confirmar cuenta.
   - [CountriesController][countriescontroller]: listado solo si ha iniciado sesión.
 
 ## Web
