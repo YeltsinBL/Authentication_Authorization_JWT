@@ -15,6 +15,7 @@ using MimeKit.Text;
 using MimeKit;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 using MailKit.Net.Smtp;
+using System.Numerics;
 
 namespace LoginToken.Service
 {
@@ -208,8 +209,15 @@ namespace LoginToken.Service
             };
             _sesionTokenContext.Usuarios.Add(user);
             await _sesionTokenContext.SaveChangesAsync();
-                        
-            SendEmail(registerRequest.Usuario, validEmailToken);
+
+            string url = $"{_configuration["AppUrl"]}/api/User/ConfirmAccount?usuario={registerRequest.Usuario}&token={validEmailToken}";
+            var datos_correo = new RequestDTO
+            {
+                Destinatario = registerRequest.Usuario,
+                Asunto = "Recuperar Contraseña",
+                Mensaje = $"<p>Práctica de Restablecer Contraseña {registerRequest.Usuario} </p> <p>Por favor, para restablecer su contraseña haga <a href='{url}'>Click aquí</a></p>"
+            };
+            SendEmail(datos_correo);
             return new AuthorizationResponse { Resultado = true, Msg = "Cuenta Creada" };
         }
 
@@ -243,14 +251,15 @@ namespace LoginToken.Service
         /// </summary>
         /// <param name="usuario"></param>
         /// <param name="validEmailToken"></param>
-        private void SendEmail(string usuario, string validEmailToken)
+        private void SendEmail(RequestDTO datos)
         {
-            string url = $"{_configuration["AppUrl"]}/api/User/ConfirmAccount?usuario={usuario}&token={validEmailToken}";
+            //string url = $"{_configuration["AppUrl"]}/api/User/ConfirmAccount?usuario={datos.Destinatario}&token={validEmailToken}";
             var email = new MimeMessage();
             email.From.Add(MailboxAddress.Parse(_configuration.GetSection("EmailUsername").Value));
-            email.To.Add(MailboxAddress.Parse(_configuration.GetSection("EmailUsername").Value));
-            email.Subject = "Confirmar Cuenta";
-            email.Body = new TextPart(TextFormat.Html) { Text = $"<p>Práctica de Confirmar Correo {usuario} </p> <p>Por favor, confirma tu correo electrónico haciendo <a href='{url}'>Click aquí</a></p>" };
+            email.To.Add(MailboxAddress.Parse(datos.Destinatario));
+            email.Subject = datos.Asunto;
+            //email.Body = new TextPart(TextFormat.Html) { Text = $"<p>Práctica de Confirmar Correo {usuario} </p> <p>Por favor, confirma tu correo electrónico haciendo <a href='{url}'>Click aquí</a></p>" };
+            email.Body = new TextPart(TextFormat.Html) { Text = datos.Mensaje };
 
             using var smtp = new SmtpClient();
             smtp.Connect(_configuration.GetSection("EmailHost").Value, 587, SecureSocketOptions.StartTls);
@@ -284,6 +293,84 @@ namespace LoginToken.Service
             await _sesionTokenContext.SaveChangesAsync();
             return new AuthorizationResponse { Resultado = true, Msg = $"{_configuration["AppUrlWeb"]}"! };
         }
+        #endregion
+
+        #region Recuperar Cuenta
+        /// <summary>
+        /// Restablecer contraseña
+        /// </summary>
+        /// <param name="usuario"></param>
+        /// <returns>Devuelve resultado satisfactorio o erróneo</returns>
+        public async Task<AuthorizationResponse> ForgotAccount(string usuario)
+        {
+            var user = _sesionTokenContext.Usuarios.FirstOrDefault(u => u.NombreUsuario == usuario);
+            if (user == null)
+            {
+                return new AuthorizationResponse { Resultado = false, Msg = "Usuario inválido" };
+            }
+            Random rnd2 = new();
+            string ClaveResetToken = rnd2.Next(0, 1000000).ToString("D6");
+            user.ClaveResetToken = ClaveResetToken;
+            user.ResetTokenExpires = DateTime.Now.AddMinutes(5);
+            await _sesionTokenContext.SaveChangesAsync();
+
+            var datos_correo = new RequestDTO
+            {
+                Destinatario = usuario,
+                Asunto = "Recuperar Contraseña",
+                Mensaje = $"<p>Práctica de Restablecer Contraseña {usuario} </p> <p>Su código de verificación es el siguiente {ClaveResetToken}</p>"
+            };
+            SendEmail(datos_correo);
+            return new AuthorizationResponse { Resultado = true, Msg = "Se ha enviado el código de verificación a su correo electrónico para restablecer la contraseña" };
+        }
+        /// <summary>
+        /// Verificar si se ingresó correctamente el código de verificación
+        /// </summary>
+        /// <param name="usuario"></param>
+        /// <param name="codigo_verificacion"></param>
+        /// <returns>Devuelve resultado satisfactorio o erróneo</returns>
+        public AuthorizationResponse VerifyForgotAccount(string usuario, string codigo_verificacion)
+        {
+            if (string.IsNullOrWhiteSpace(codigo_verificacion))
+            {
+                return new AuthorizationResponse { Resultado = false, Msg = "Código de verificación inválidos" };
+            }
+            var user = _sesionTokenContext.Usuarios.FirstOrDefault(u =>
+                        u.NombreUsuario == usuario && u.ClaveResetToken == codigo_verificacion);
+            if (user == null)
+            {
+                return new AuthorizationResponse { Resultado = false, Msg = "Código de verificación incorrecto" };
+            }
+            if (user.ResetTokenExpires < DateTime.Now)
+            {
+                return new AuthorizationResponse { Resultado = false, Msg = "Su código de verificación ha expirado, solicite uno nuevo" };
+            }
+
+            return new AuthorizationResponse { Resultado = true, Msg = "Verificación Exitosa" };
+        }
+        /// <summary>
+        /// Crear una nueva contraseña
+        /// </summary>
+        /// <param name="resetPasswordRequest"></param>
+        /// <returns>Devuelve resultado satisfactorio o erróneo</returns>
+        public async Task<AuthorizationResponse> RegisterNewPassword(ResetPasswordRequest resetPasswordRequest)
+        {
+            var usuario = _sesionTokenContext.Usuarios.FirstOrDefault(u => u.NombreUsuario == resetPasswordRequest.Usuario);
+            if (usuario == null)
+            {
+                return new AuthorizationResponse { Resultado = false, Msg = "Usuario inválido" };
+            }
+            CreatePasswordHash(resetPasswordRequest.Password, out byte[] claveHash, out byte[] claveSalt);
+
+            usuario.Clave = claveHash;
+            usuario.ClaveSalt = claveSalt;
+            usuario.ClaveResetToken = null;
+            usuario.ResetTokenExpires = null;
+            await _sesionTokenContext.SaveChangesAsync();
+
+            return new AuthorizationResponse { Resultado = true, Msg = "Contraseña cambiada exitosamente" };
+        }
+
         #endregion
     }
 }

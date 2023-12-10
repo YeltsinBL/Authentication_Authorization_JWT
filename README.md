@@ -18,7 +18,13 @@ Realización de API Rest para la autenticación y autorización del usuario, uti
 - Mediante el uso de la consola de comando de Nuget se agregó el siguiente comando:
 
 ```sh
-Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connection=True; TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir [nombre de la carpeta creado]
+Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connection=True; TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir [nombre de la carpeta creada]
+```
+
+- De existir cambios en la base de datos, se utilizó el siguiente comando para replicarlo en la aplicación:
+
+```sh
+Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connection=True; TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir [nombre de la carpeta creada] -f -Context [nombre del archivo context]
 ```
 
 - En el archivo [`appsettings.json`][appsettings]:
@@ -38,12 +44,14 @@ Scaffold-DbContext "Server=[server_name]; DataBase=[nombre_bd]; Trusted_Connecti
   - AuthorizationRequest: para las credenciales del Login.
   - AuthorizationResponse: para la respuesta al Login.
   - RefreshTokenRequest: para generar el access y refresh token.
-  - RegisterRequest: para las credenciales al crear una cuenta
+  - RegisterRequest: para las credenciales al crear una cuenta.
+  - ResetPasswordRequest: para los datos de la nueva contraseña.
+
 - [`Service`][service]:
   - [IAuthorizationService][iauthorizationservice]: interfaz para las autorizaciones: login con Token y registrar cuenta.
   - [AuthorizationService][authorizationservice]: clase heredada donde se implementa los métodos de la interfaz IAuthorizationService y se agrega métodos privados para la creación y guardado del Access y Refresh Token en la BD.
 - [`Controllers`][controller]:
-  - [UserController][usercontroller]: api para iniciar sesión, obtener el refresh token, crear cuenta y confirmar cuenta.
+  - [UserController][usercontroller]: api para iniciar sesión, obtener el refresh token, crear cuenta, confirmar cuenta, restablecer contraseña, verificar código de restablecimiento y actualizar contraseña.
   - [CountriesController][countriescontroller]: listado solo si ha iniciado sesión.
 
 ## Web

@@ -36,9 +36,7 @@ public partial class SesionTokenContext : DbContext
             entity.Property(e => e.RefreshToken)
                 .HasMaxLength(200)
                 .IsUnicode(false);
-            entity.Property(e => e.Token)
-                .HasMaxLength(500)
-                .IsUnicode(false);
+            entity.Property(e => e.Token).IsUnicode(false);
 
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.HistorialRefreshTokens)
                 .HasForeignKey(d => d.IdUsuario)
@@ -55,7 +53,7 @@ public partial class SesionTokenContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false);
             entity.Property(e => e.NombreUsuario)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ResetTokenExpires).HasColumnType("datetime");
             entity.Property(e => e.Verificar).HasColumnType("datetime");

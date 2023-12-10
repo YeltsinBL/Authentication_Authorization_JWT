@@ -5,6 +5,7 @@ using LoginToken.Models.Custom;
 using LoginToken.Service;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using LoginToken.Models;
 
 namespace LoginToken.Controllers
 {
@@ -58,7 +59,7 @@ namespace LoginToken.Controllers
 
         [HttpPost]
         [Route("RegisterAccount")]
-        public async Task<IActionResult> Register(RegisterRequest registerRequest)
+        public async Task<IActionResult> RegisterAccount(RegisterRequest registerRequest)
         {
             var result = await _authorizationService.RegisterAccount(registerRequest);
             if (!result.Resultado)
@@ -69,7 +70,7 @@ namespace LoginToken.Controllers
         }
         [HttpGet]
         [Route("ConfirmAccount")]
-        public async Task<IActionResult> ConfirmarCuenta(string usuario, string token)
+        public async Task<IActionResult> ConfirmAccount(string usuario, string token)
         {
             var result = await _authorizationService.VerifyRegisterAccount(usuario, token);
             if (!result.Resultado)
@@ -77,6 +78,39 @@ namespace LoginToken.Controllers
                 return BadRequest(result);
             }
             return Redirect(result.Msg);
+        }
+        [HttpPost]
+        [Route("ForgotAccount")]
+        public async Task<IActionResult> ForgotAccount(string usuario)
+        {
+            var result = await _authorizationService.ForgotAccount(usuario);
+            if (!result.Resultado)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
+        [HttpGet]
+        [Route("ConfirmForgotAccount")]
+        public IActionResult ConfirmForgotAccount(string usuario, string codigo_verificacion)
+        {
+            var result = _authorizationService.VerifyForgotAccount(usuario, codigo_verificacion);
+            if (!result.Resultado)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
+        [HttpPost]
+        [Route("RegisterNewPassword")]
+        public async Task<IActionResult> RegisterNewPassword(ResetPasswordRequest resetPasswordRequest)
+        {
+            var result = await _authorizationService.RegisterNewPassword(resetPasswordRequest);
+            if (!result.Resultado)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
         }
     }
 }
