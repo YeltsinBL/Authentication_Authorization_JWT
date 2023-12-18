@@ -148,9 +148,14 @@ namespace LoginToken.Service
 
             await _sesionTokenContext.HistorialRefreshTokens.AddAsync(historyRefreshToken);
             await _sesionTokenContext.SaveChangesAsync();
-
+            var usuario_registrado = _sesionTokenContext.Usuarios.FirstOrDefault(x =>
+                x.IdUsuario == idUsuario
+            );
+            
             return new AuthorizationResponse() { Token = token, RefreshToken = refreshToken,
-                Resultado = true, Msg ="OK", Nombre="Prueba", Correo="prueba@prueba.com", Rol="Administrador" };
+                Resultado = true, Msg ="OK", Nombre= usuario_registrado.NombreUsuario.Contains('@') ? 
+                        usuario_registrado.NombreUsuario[..usuario_registrado.NombreUsuario.IndexOf('@')] : usuario_registrado.NombreUsuario, 
+                Correo= usuario_registrado.NombreUsuario, Rol="Administrador" };
         
         }
 
@@ -214,8 +219,8 @@ namespace LoginToken.Service
             var datos_correo = new RequestDTO
             {
                 Destinatario = registerRequest.Usuario,
-                Asunto = "Recuperar Contraseña",
-                Mensaje = $"<p>Práctica de Restablecer Contraseña {registerRequest.Usuario} </p> <p>Por favor, para restablecer su contraseña haga <a href='{url}'>Click aquí</a></p>"
+                Asunto = "Creación de Cuenta",
+                Mensaje = $"<p>Creación de cuenta: {registerRequest.Usuario} </p> <p>Por favor, para confirmar su cuenta, haga <a href='{url}'>Click aquí</a></p>"
             };
             SendEmail(datos_correo);
             return new AuthorizationResponse { Resultado = true, Msg = "Cuenta Creada" };
