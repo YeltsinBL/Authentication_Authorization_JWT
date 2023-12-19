@@ -22,7 +22,7 @@ namespace LoginBlazorWeb.Service
 
         public async Task<SessionDTO> Login(LoginDTO loginModel)
         {
-            var clave_encriptada = Utility.GetSHA256(loginModel.clave);
+            var clave_encriptada = Utility.GetSHA256(loginModel.clave);//loginModel.clave;//
             var key = Utility.GetRequestUri(_configuration, "registrarHttp");
             var requestUri = Utility.GetRequestUri(_configuration, "authentication",2);
             var httpClient = _httpClientFactory.CreateClient(key!);
@@ -37,6 +37,18 @@ namespace LoginBlazorWeb.Service
             }
             return sesionUsuario!;
 
+        }
+
+        public async Task<SessionDTO> Registrar(RegisterDTO registerModel)
+        {
+            var clave_encriptada = Utility.GetSHA256(registerModel.password);//loginModel.clave;//
+            var key = Utility.GetRequestUri(_configuration, "registrarHttp");
+            var requestUri = Utility.GetRequestUri(_configuration, "getRegisterUser", 2);
+            var httpClient = _httpClientFactory.CreateClient(key!);
+            var newRegisterDTO = new RegisterDTO() { password = clave_encriptada, usuario = registerModel.usuario,confirmPassword=clave_encriptada };
+            var loginResponse = await httpClient.PostAsJsonAsync(requestUri!, newRegisterDTO);
+            var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();            
+            return sesionUsuario!;
         }
     }
 }
