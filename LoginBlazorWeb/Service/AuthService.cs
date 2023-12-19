@@ -50,5 +50,45 @@ namespace LoginBlazorWeb.Service
             var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();            
             return sesionUsuario!;
         }
+        public async Task<SessionDTO> OlvidaContrasena(string correo)
+        {
+            var key = Utility.GetRequestUri(_configuration, "registrarHttp");
+            var requestUri = Utility.GetRequestUri(_configuration, "getForgotAccount", 2);
+            var httpClient = _httpClientFactory.CreateClient(key!);
+            var loginResponse = await httpClient.PostAsJsonAsync(requestUri! + "?usuario=" + correo, new{ });
+            var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();
+            if (loginResponse.IsSuccessStatusCode)
+            {
+                sesionUsuario.Correo = correo;
+                var autenticacionExt = (AuthenticationExtension)_authenticationStateProvider;
+                await autenticacionExt.RestaurarContrasena(sesionUsuario);
+            }
+            return sesionUsuario!;
+        }
+        public async Task<SessionDTO> ConfirmarOlvidaContrasena(string correo, string codigo)
+        {
+            var key = Utility.GetRequestUri(_configuration, "registrarHttp");
+            var requestUri = Utility.GetRequestUri(_configuration, "getConfirmForgotAccount", 2);
+            var httpClient = _httpClientFactory.CreateClient(key!);
+            var loginResponse = await httpClient.GetAsync(requestUri! + "?usuario=" + correo+ "&codigo_verificacion="+codigo);
+            var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();
+            return sesionUsuario!;
+        }
+        public async Task<SessionDTO> CambiarContrasena(RegisterDTO registerModel)
+        {
+            var clave_encriptada = Utility.GetSHA256(registerModel.password);
+            var key = Utility.GetRequestUri(_configuration, "registrarHttp");
+            var requestUri = Utility.GetRequestUri(_configuration, "getChangePassword", 2);
+            var httpClient = _httpClientFactory.CreateClient(key!);
+            var newRegisterDTO = new RegisterDTO() { password = clave_encriptada, usuario = registerModel.usuario, confirmPassword = clave_encriptada };
+            var loginResponse = await httpClient.PostAsJsonAsync(requestUri!, newRegisterDTO);
+            var sesionUsuario = await loginResponse.Content.ReadFromJsonAsync<SessionDTO>();
+            if (loginResponse.IsSuccessStatusCode)
+            {
+                var autenticacionExt = (AuthenticationExtension)_authenticationStateProvider;
+                await autenticacionExt.RestaurarContrasena(null);
+            }
+            return sesionUsuario!;
+        }
     }
 }

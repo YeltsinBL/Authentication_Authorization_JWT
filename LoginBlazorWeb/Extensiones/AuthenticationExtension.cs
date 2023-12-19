@@ -78,5 +78,10 @@ namespace LoginBlazorWeb.Extensiones
             return await Task.FromResult(new AuthenticationState(authenticatedUser));
         }
 
+        public async Task RestaurarContrasena(SessionDTO? sessionUsuario)
+        {
+            if (sessionUsuario != null) await _localStorageService.GuardarLocalStorage("changepassword", sessionUsuario.Correo);
+            else await _localStorageService.RemoveItemAsync("changepassword");
+        }
     }
 }

@@ -1,0 +1,118 @@
+﻿@page "/Forgot_Account"
+@layout LoginLayout
+
+@using LoginBlazorWeb.Service;
+@using Microsoft.AspNetCore.Components.Authorization;
+
+@inject AuthenticationStateProvider autenticacionProvider
+@inject NavigationManager navManager
+@inject IAuthService AuthService
+
+@if (ShowErrors)
+{
+    <div class="@type_alert" role="alert">
+        <p>@Error</p>
+    </div>
+}
+
+
+<div class="row mt-5">
+
+    <div class="col-lg-4 offset-lg-4 border">
+
+        <div class="mb-3 text-center">
+            <h3>Verificar Cuenta</h3>
+            <p>Se le enviará un mensaje al correo electrónico con el código de verificación</p>
+        </div>
+        <div class="mb-3">
+            <label>Correo</label>
+            <input class="form-control" @bind="@correo" @oninput="OnInputEvent" disabled="@isDisable_correo" />
+            <button @onclick="Generar_Codigo" class="btn btn-primary" disabled="@isDisable_correo">Verificar</button>
+        </div>
+        <div class="mb-3">
+            <label>Ingrese el código de Verificación</label>
+            <input class="form-control" @bind="@codigo_verificacion" @oninput="OnInputEvent_Cod" disabled="@isDisable_codigo" />
+        </div>        
+
+        <div class="mb-3">
+            <button @onclick="Verificar_Codigo" class="btn btn-primary" disabled="@isDisable_codigo">Verificar</button>
+        </div>
+        <div class="mb-3">
+            <a href="/">Login</a>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthenticationState).User;
+        if (user.Identity.IsAuthenticated)
+        {
+            navManager.NavigateTo("/index");
+        }
+        await base.OnInitializedAsync();
+    }
+
+    private bool ShowErrors;
+    private string Error = "";
+    private string type_alert = "alert alert-danger";
+
+    private string correo = "";
+    private string codigo_verificacion = "";
+    private bool isDisable_correo { get; set; } = false;
+    private bool isDisable_codigo { get; set; } = true;
+
+    private void OnInputEvent(ChangeEventArgs changeEvent)
+    {
+        correo = (string)changeEvent.Value;
+    }
+    private void OnInputEvent_Cod(ChangeEventArgs changeEvent)
+    {
+        codigo_verificacion = (string)changeEvent.Value;
+    }
+
+    private async Task Generar_Codigo()
+    {
+        ShowErrors = false;
+        var result =await AuthService.OlvidaContrasena(correo); 
+
+        if (result.Resultado)
+        {
+            type_alert = "alert alert-success";
+            Error = result.Msg!;
+            ShowErrors = true;
+            isDisable_codigo = false;
+            isDisable_correo = true;
+        }
+        else
+        {
+            Resultados_Error(result.Msg!);
+        }
+    }
+
+    private async Task Verificar_Codigo()
+    {
+        ShowErrors = false;
+        var result = await AuthService.ConfirmarOlvidaContrasena(correo,codigo_verificacion);
+
+        if (result.Resultado)
+        {
+            navManager.NavigateTo("/ChangePassword");
+        }
+        else
+        {
+            Resultados_Error(result.Msg!);
+        }
+    }
+    private void Resultados_Error(string mensaje)
+    {
+        type_alert = "alert alert-danger";
+        Error = mensaje;
+        ShowErrors = true;
+    }
+}
